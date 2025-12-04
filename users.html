@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Users</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body { background: #f4f4f4; }
+    .table thead { background: #212529; color: #fff; }
+  </style>
+</head>
+
+<body>
+
+<div class="container py-4">
+
+  <h2 class="fw-bold mb-3">User Management</h2>
+
+  <!-- Top Bar -->
+  <div class="d-flex justify-content-between mb-3">
+    <input type="text" id="searchBar" class="form-control w-50" placeholder="Search user...">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">+ Add User</button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+
+      <tbody id="userTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- =================== MODALS =================== -->
+
+<!-- ADD USER -->
+<div class="modal fade" id="addModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5>Add New User</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <input id="addName" class="form-control mb-2" placeholder="Full Name">
+        <input id="addEmail" class="form-control mb-2" placeholder="Email">
+
+        <select id="addRole" class="form-select mb-2">
+          <option>Client</option>
+          <option>Photographer</option>
+        </select>
+
+        <select id="addStatus" class="form-select mb-3">
+          <option>Active</option>
+          <option>Blocked</option>
+        </select>
+
+        <button class="btn btn-primary w-100" onclick="addUser()">Add User</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- EDIT USER -->
+<div class="modal fade" id="editModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5>Edit User</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <input id="editId" type="hidden">
+        <input id="editName" class="form-control mb-2">
+        <input id="editEmail" class="form-control mb-2">
+
+        <select id="editRole" class="form-select mb-2">
+          <option>Client</option>
+          <option>Photographer</option>
+        </select>
+
+        <select id="editStatus" class="form-select mb-3">
+          <option>Active</option>
+          <option>Blocked</option>
+        </select>
+
+        <button class="btn btn-warning w-100" onclick="updateUser()">Save Changes</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- VIEW USER -->
+<div class="modal fade" id="viewModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5>User Details</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body" id="viewBody"></div>
+
+    </div>
+  </div>
+</div>
+
+<!-- DELETE USER -->
+<div class="modal fade" id="deleteModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header bg-danger text-white">
+        <h5>Delete User</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <p>Are you sure you want to delete this user?</p>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- =================== JAVASCRIPT CRUD LOGIC =================== -->
+<script>
+
+  let deleteID = null;
+
+  // Load users from LocalStorage
+  function loadUsers() {
+    let users = JSON.parse(localStorage.getItem("users")) || [];
+    let table = document.getElementById("userTable");
+    table.innerHTML = "";
+
+    users.forEach(user => {
+      table.innerHTML += `
+      <tr>
+        <td>${user.id}</td>
+        <td>${user.name}</td>
+        <td>${user.email}</td>
+        <td>${user.role}</td>
+        <td><span class="badge bg-${user.status === "Active" ? "success" : "danger"}">${user.status}</span></td>
+        <td>
+          <button class="btn btn-info btn-sm" onclick="viewUser(${user.id})">View</button>
+          <button class="btn btn-warning btn-sm" onclick="editUser(${user.id})">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteUser(${user.id})">Delete</button>
+        </td>
+      </tr>`;
+    });
+  }
+
+  // Add User
+  function addUser() {
+    let users = JSON.parse(localStorage.getItem("users")) || [];
+
+    let newUser = {
+      id: Date.now(),
+      name: document.getElementById("addName").value,
+      email: document.getElementById("addEmail").value,
+      role: document.getElementById("addRole").value,
+      status: document.getElementById("addStatus").value
+    };
+
+    users.push(newUser);
+    localStorage.setItem("users", JSON.stringify(users));
+
+    document.getElementById("addName").value = "";
+    document.getElementById("addEmail").value = "";
+
+    loadUsers();
+    document.querySelector("#addModal .btn-close").click();
+  }
+
+  // View User
+  function viewUser(id) {
+    let users = JSON.parse(localStorage.getItem("users")) || [];
+    let user = users.find(u => u.id === id);
+
+    document.getElementById("viewBody").innerHTML = `
+      <p><strong>ID:</strong> ${user.id}</p>
+      <p><strong>Name:</strong> ${user.name}</p>
+      <p><strong>Email:</strong> ${user.email}</p>
+      <p><strong>Role:</strong> ${user.role}</p>
+      <p><strong>Status:</strong> ${user.status}</p>
+    `;
+
+    new bootstrap.Modal(document.getElementById("viewModal")).show();
+  }
+
+
+  // Edit User
+  function editUser(id) {
+    let users = JSON.parse(localStorage.getItem("users")) || [];
+    let user = users.find(u => u.id === id);
+
+    document.getElementById("editId").value = user.id;
+    document.getElementById("editName").value = user.name;
+    document.getElementById("editEmail").value = user.email;
+    document.getElementById("editRole").value = user.role;
+    document.getElementById("editStatus").value = user.status;
+
+    new bootstrap.Modal(document.getElementById("editModal")).show();
+  }
+
+  // Update User
+  function updateUser() {
+    let users = JSON.parse(localStorage.getItem("users")) || [];
+
+    let id = Number(document.getElementById("editId").value);
+
+    users = users.map(user => {
+      if (user.id === id) {
+        return {
+          ...user,
+          name: document.getElementById("editName").value,
+          email: document.getElementById("editEmail").value,
+          role: document.getElementById("editRole").value,
+          status: document.getElementById("editStatus").value
+        };
+      }
+      return user;
+    });
+
+    localStorage.setItem("users", JSON.stringify(users));
+    loadUsers();
+    document.querySelector("#editModal .btn-close").click();
+  }
+
+
+  // Delete User (Open Modal)
+  function deleteUser(id) {
+    deleteID = id;
+    new bootstrap.Modal(document.getElementById("deleteModal")).show();
+  }
+
+  // Confirm Delete
+  function confirmDelete() {
+    let users = JSON.parse(localStorage.getItem("users")) || [];
+    users = users.filter(u => u.id !== deleteID);
+
+    localStorage.setItem("users", JSON.stringify(users));
+    loadUsers();
+
+    deleteID = null;
+    document.querySelector("#deleteModal .btn-close")?.click();
+  }
+
+
+  // Search User
+  document.getElementById("searchBar").addEventListener("keyup", function () {
+    let value = this.value.toLowerCase();
+    let rows = document.querySelectorAll("#userTable tr");
+
+    rows.forEach(row => {
+      let name = row.cells[1].innerText.toLowerCase();
+      let email = row.cells[2].innerText.toLowerCase();
+
+      row.style.display = (name.includes(value) || email.includes(value)) ? "" : "none";
+    });
+  });
+
+
+  // Load on start
+  loadUsers();
+
+</script>
+
+</body>
+</html>
