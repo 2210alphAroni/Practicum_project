@@ -2,47 +2,82 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Admin - Users</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Users Management</title>
 
-  <!-- Bootstrap -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-  <style>
-    body { background: #f4f4f4; }
-    .table thead { background: #212529; color: #fff; }
-  </style>
+  <!-- Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<div class="container py-4">
+<!-- TOP NAVBAR -->
+<nav class="nav-area navbar navbar-expand-lg navbar-dark px-3">
+  <span class="toggle-btn me-3">
+    <i class="fa fa-bars"></i>
+  </span>
 
-  <h2 class="fw-bold mb-3">User Management</h2>
+  <a class="navbar-brand" href="#">Admin Dashboard</a>
 
-  <!-- Top Bar -->
+  <div class="ms-auto d-flex">
+    <span class="text-white me-3">Welcome, Admin</span>
+    <button class="btn btn-outline-light btn-sm">Logout</button>
+  </div>
+</nav>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <span>&times;</span>
+  <h2>Admin Dashboard</h2>
+
+  <a href="index.html"><i class="fa fa-home me-2"></i> Dashboard</a>
+  <a href="users.html" class="bg-dark text-white"><i class="fa fa-users me-2"></i> Users</a>
+  <a href="#"><i class="fa fa-camera me-2"></i> Photographers</a>
+  <a href="#"><i class="fa-solid fa-icons"></i>&nbsp;&nbsp; ServiceCategory</a>
+  <a href="#"><i class="fa-solid fa-box"></i>&nbsp;&nbsp; Packages</a>
+  <a href="#"><i class="fa-solid fa-check-to-slot"></i>&nbsp;&nbsp; TimeSlot</a>
+  <a href="#"><i class="fa-brands fa-searchengin"></i>&nbsp;&nbsp; Reviews</a>
+  <a href="#"><i class="fa fa-book me-2"></i> Bookings</a>
+  <a href="#"><i class="fa fa-money-bill me-2"></i> Payments</a>
+  <a href="#"><i class="fa fa-gear me-2"></i> Settings</a>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="content-area" id="content">
+
+  <h3 class="fw-bold mb-4">User Management</h3>
+
+  <!-- Top section -->
   <div class="d-flex justify-content-between mb-3">
     <input type="text" id="searchBar" class="form-control w-50" placeholder="Search user...">
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">+ Add User</button>
   </div>
 
-  <!-- Table -->
-  <div class="table-responsive">
-    <table class="table table-bordered table-striped">
-      <thead>
-      <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Role</th>
-        <th>Status</th>
-        <th>Actions</th>
-      </tr>
-      </thead>
-
-      <tbody id="userTable"></tbody>
-    </table>
+  <!-- User Table -->
+  <div class="card shadow-sm">
+    <div class="card-body p-0 table-responsive">
+      <table class="table table-striped mb-0">
+        <thead class="table-dark">
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th width="220">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="userTable"></tbody>
+      </table>
+    </div>
   </div>
+
 </div>
+
 
 <!-- =================== MODALS =================== -->
 
@@ -125,7 +160,7 @@
   </div>
 </div>
 
-<!-- DELETE USER -->
+<!-- DELETE MODAL -->
 <div class="modal fade" id="deleteModal">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -145,15 +180,31 @@
   </div>
 </div>
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- =================== JAVASCRIPT CRUD LOGIC =================== -->
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- =================== JAVASCRIPT CRUD + SIDEBAR =================== -->
 <script>
+
+  /* ------------ SIDEBAR TOGGLE ------------ */
+  let icon = document.querySelector(".fa-bars");
+  let navarea = document.querySelector(".sidebar");
+  let closenav = document.querySelector(".sidebar span");
+
+  icon.addEventListener("click", () => {
+    navarea.classList.toggle("active");
+  });
+
+  closenav.addEventListener("click", () => {
+    navarea.classList.remove("active");
+  });
+
+
+  /* ------------ CRUD LOGIC ------------ */
 
   let deleteID = null;
 
-  // Load users from LocalStorage
   function loadUsers() {
     let users = JSON.parse(localStorage.getItem("users")) || [];
     let table = document.getElementById("userTable");
@@ -161,22 +212,22 @@
 
     users.forEach(user => {
       table.innerHTML += `
-      <tr>
-        <td>${user.id}</td>
-        <td>${user.name}</td>
-        <td>${user.email}</td>
-        <td>${user.role}</td>
-        <td><span class="badge bg-${user.status === "Active" ? "success" : "danger"}">${user.status}</span></td>
-        <td>
-          <button class="btn btn-info btn-sm" onclick="viewUser(${user.id})">View</button>
-          <button class="btn btn-warning btn-sm" onclick="editUser(${user.id})">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteUser(${user.id})">Delete</button>
-        </td>
-      </tr>`;
+        <tr>
+          <td>${user.id}</td>
+          <td>${user.name}</td>
+          <td>${user.email}</td>
+          <td>${user.role}</td>
+          <td><span class="badge bg-${user.status === 'Active' ? 'success' : 'danger'}">${user.status}</span></td>
+          <td>
+            <button class="btn btn-info btn-sm" onclick="viewUser(${user.id})">View</button>
+            <button class="btn btn-warning btn-sm" onclick="editUser(${user.id})">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteUser(${user.id})">Delete</button>
+          </td>
+        </tr>
+      `;
     });
   }
 
-  // Add User
   function addUser() {
     let users = JSON.parse(localStorage.getItem("users")) || [];
 
@@ -198,7 +249,6 @@
     document.querySelector("#addModal .btn-close").click();
   }
 
-  // View User
   function viewUser(id) {
     let users = JSON.parse(localStorage.getItem("users")) || [];
     let user = users.find(u => u.id === id);
@@ -214,8 +264,6 @@
     new bootstrap.Modal(document.getElementById("viewModal")).show();
   }
 
-
-  // Edit User
   function editUser(id) {
     let users = JSON.parse(localStorage.getItem("users")) || [];
     let user = users.find(u => u.id === id);
@@ -229,38 +277,30 @@
     new bootstrap.Modal(document.getElementById("editModal")).show();
   }
 
-  // Update User
   function updateUser() {
     let users = JSON.parse(localStorage.getItem("users")) || [];
-
     let id = Number(document.getElementById("editId").value);
 
-    users = users.map(user => {
-      if (user.id === id) {
-        return {
-          ...user,
-          name: document.getElementById("editName").value,
-          email: document.getElementById("editEmail").value,
-          role: document.getElementById("editRole").value,
-          status: document.getElementById("editStatus").value
-        };
-      }
-      return user;
-    });
+    users = users.map(user =>
+      user.id === id ? {
+        ...user,
+        name: document.getElementById("editName").value,
+        email: document.getElementById("editEmail").value,
+        role: document.getElementById("editRole").value,
+        status: document.getElementById("editStatus").value
+      } : user
+    );
 
     localStorage.setItem("users", JSON.stringify(users));
     loadUsers();
     document.querySelector("#editModal .btn-close").click();
   }
 
-
-  // Delete User (Open Modal)
   function deleteUser(id) {
     deleteID = id;
     new bootstrap.Modal(document.getElementById("deleteModal")).show();
   }
 
-  // Confirm Delete
   function confirmDelete() {
     let users = JSON.parse(localStorage.getItem("users")) || [];
     users = users.filter(u => u.id !== deleteID);
@@ -268,12 +308,9 @@
     localStorage.setItem("users", JSON.stringify(users));
     loadUsers();
 
-    deleteID = null;
     document.querySelector("#deleteModal .btn-close")?.click();
   }
 
-
-  // Search User
   document.getElementById("searchBar").addEventListener("keyup", function () {
     let value = this.value.toLowerCase();
     let rows = document.querySelectorAll("#userTable tr");
@@ -286,8 +323,6 @@
     });
   });
 
-
-  // Load on start
   loadUsers();
 
 </script>
